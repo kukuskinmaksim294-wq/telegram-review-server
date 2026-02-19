@@ -1,10 +1,11 @@
+// index.js
 import express from "express";
-import fetch from "node-fetch";
 import * as dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // для JSON POST-запросов
 
 app.post("/send", async (req, res) => {
   const { name, review } = req.body;
@@ -13,9 +14,14 @@ app.post("/send", async (req, res) => {
   const token = process.env.BOT_TOKEN;
   const chatId = process.env.CHAT_ID;
 
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
-
-  res.send("OK");
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
+    res.send("OK");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Ошибка");
+  }
 });
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
